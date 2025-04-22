@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import systementor.securelogin.model.UserModel;
 import systementor.securelogin.service.UserService;
 
+import java.util.regex.Pattern;
+
 
 @Controller
 public class UserController {
@@ -34,10 +36,23 @@ public class UserController {
     public String handleRegister(@RequestParam String username,
                                  @RequestParam String password,
                                  Model model) {
-        /*TODO
-         * Register a user.
-         * Check if user already exists in our DB(Be a nice developer and tell the user that username is already in use)
-         * */
+        String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!\"€/*@#$%^&-+=()])(?=\\S+$).{8,20}$";
+
+        if (username.length() > 20){
+            model.addAttribute("error", "Användarnamnet är för långt.");
+            return "register";
+        }
+        if (userService.userIsRegistered(username)){
+            model.addAttribute("error", "Användarnamnet är upptaget");
+            return "register";
+        }
+        if (!Pattern.matches(regex, password)) {
+            model.addAttribute("error", "Lösenordet måste vara mellan 8-20 tecken långt, "
+            + "innehålla minst en siffra, ett liten bokstav, en stort bokstav och ett specialtecken. Mellanslag är ej tillåtna.");
+            return "register";
+        }
+        userService.registerUser(username.trim(),password);
+
         return "redirect:/login";
     }
 
