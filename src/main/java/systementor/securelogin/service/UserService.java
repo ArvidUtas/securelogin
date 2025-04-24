@@ -24,7 +24,7 @@ public class UserService {
         userRepository.save(userModel);
     }
 
-    public void updatePassword(String username, String password, String newPassword){
+    public void updatePassword(String username, String newPassword){
         userRepository.updatePassword(username, BCrypt.hashpw(newPassword, BCrypt.gensalt()));
     }
 
@@ -34,5 +34,13 @@ public class UserService {
 
     public boolean userIsRegistered(String username) {
         return userRepository.findByUsername(username).isPresent();
+    }
+
+    public boolean isValidUsername(String username) {
+        return username.matches("^[a-zA-Z0-9_]{1,20}$");
+    }
+
+    public boolean isValidPassword(String password){
+        return password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!\"€/*@#$%^&-+=()])(?=\\S+$).{8,20}$");
     }
 }

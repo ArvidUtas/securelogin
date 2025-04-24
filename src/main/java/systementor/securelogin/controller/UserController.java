@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import systementor.securelogin.model.UserModel;
 import systementor.securelogin.service.UserService;
 
-import java.util.regex.Pattern;
-
-
 @Controller
 public class UserController {
 
@@ -36,23 +33,21 @@ public class UserController {
     public String handleRegister(@RequestParam String username,
                                  @RequestParam String password,
                                  Model model) {
-        String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!\"€/*@#$%^&-+=()])(?=\\S+$).{8,20}$";
+        String errormessage = "";
 
         if (username.isEmpty() || password.isEmpty()){
-            model.addAttribute("error", "Användarnamnet eller lösenordet är tomt.");
-            return "register";
+            errormessage = "Användarnamnet eller lösenordet är tomt.";
+        } else if (!userService.isValidUsername(username)){
+            errormessage = "Användarnamnet är för långt eller innehåller felaktiga karaktärer.";
+        } else if (userService.userIsRegistered(username)){
+            errormessage = "Användarnamnet är upptaget";
+        } else if (!userService.isValidPassword(password)) {
+            errormessage = "Lösenordet måste vara mellan 8-20 tecken långt, innehålla minst en siffra, "
+            + "en liten bokstav, en stort bokstav och ett specialtecken. Mellanslag är ej tillåtna.";
         }
-        if (username.length() > 20){
-            model.addAttribute("error", "Användarnamnet är för långt.");
-            return "register";
-        }
-        if (userService.userIsRegistered(username)){
-            model.addAttribute("error", "Användarnamnet är upptaget");
-            return "register";
-        }
-        if (!Pattern.matches(regex, password)) {
-            model.addAttribute("error", "Lösenordet måste vara mellan 8-20 tecken långt, "
-            + "innehålla minst en siffra, ett liten bokstav, en stort bokstav och ett specialtecken. Mellanslag är ej tillåtna.");
+
+        if (!errormessage.isEmpty()) {
+            model.addAttribute("error", errormessage);
             return "register";
         }
         userService.registerUser(username.trim(),password);
@@ -91,29 +86,27 @@ public class UserController {
                                @RequestParam String password,
                                @RequestParam String newPassword,
                                Model model) {
-        String regex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!\"€/*@#$%^&-+=()])(?=\\S+$).{8,20}$";
+        String errormessage = "";
 
         if (username.isEmpty() || password.isEmpty() || newPassword.isEmpty()){
-            model.addAttribute("error", "Användarnamnet eller lösenordet är tomt.");
+            errormessage = "Användarnamnet eller lösenordet är tomt.";
+        } else if (!userService.userIsRegistered(username)){
+            errormessage = "Kontot finns inte.";
+        } else if (password.equals(newPassword)){
+            errormessage = "Det nya lösenordet får inte vara samma som det gamla.";
+        } else if (!userService.isValidPassword(newPassword)) {
+            errormessage = "Lösenordet måste vara mellan 8-20 tecken långt, innehålla minst en siffra, "
+                    + "en liten bokstav, en stort bokstav och ett specialtecken. Mellanslag är ej tillåtna.";
+        }
+        if (!errormessage.isEmpty()){
+            model.addAttribute("error", errormessage);
             return "update";
         }
-        if (!userService.userIsRegistered(username)){
-            model.addAttribute("error", "Kontot finns inte.");
-            return "update";
-        }
-        if (password.equals(newPassword)){
-            model.addAttribute("error", "Det nya lösenordet får inte vara samma som det gamla.");
-            return "update";
-        }
-        if (!Pattern.matches(regex, newPassword)) {
-            model.addAttribute("error", "Lösenordet måste vara mellan 8-20 tecken långt, "
-                    + "innehålla minst en siffra, ett liten bokstav, en stort bokstav och ett specialtecken. Mellanslag är ej tillåtna.");
-            return "update";
-        }
+
         return userService.findByUsername(username)
                 .filter(hashed -> new BCryptPasswordEncoder().matches(password, hashed))
                 .map(found -> {
-                    userService.updatePassword(username.trim(), password, newPassword);
+                    userService.updatePassword(username.trim(), newPassword);
                     return "redirect:/login";
                 })
                 .orElseGet(() -> {
