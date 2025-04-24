@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Byt lösenord</title>
+</head>
+<body>
+<h2>Byt lösenord</h2>
+
+<form th:action="@{/update}" th:object="${user}" method="post">
+
+    <p th:if="${error}" th:text="${error}" style="color:red;"></p>
+
+    <label for="username">Användarnamn:</label>
+    <input type="text" name="username" id="username" required><br><br>
+
+    <label for="password">Gammalt lösenord:</label>
+    <input type="password" name="password" id="password" required><br><br>
+
+    <label for="newPassword">Nytt lösenord:</label>
+    <input type="password" name="newPassword" id="newPassword" required><br><br>
+
+    <button type="submit">Byt</button>
+</form>
+
+</body>
+</html>
