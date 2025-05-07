@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 public class LoginAttemptService {
 
     private final int MAX_ATTEMPT = 5;
-    private final long BLOCK_TIME = TimeUnit.MINUTES.toMillis(15);
+    private final long BLOCK_TIME = TimeUnit.MINUTES.toMillis(10);
     private ConcurrentHashMap<String, Attempt> attempts = new ConcurrentHashMap<>();
 
     public void loginSuccess(String username){
