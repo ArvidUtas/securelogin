@@ -9,10 +9,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import systementor.securelogin.model.UserModel;
+import systementor.securelogin.service.LoginAttemptService;
 import systementor.securelogin.service.UserService;
 
 @Controller
 public class UserController {
+    @Autowired
+    private LoginAttemptService loginAttemptService;
 
     @Autowired
     private UserService userService;
@@ -60,15 +63,24 @@ public class UserController {
     public String handleLogin(@RequestParam String username,
                               @RequestParam String password,
                               Model model) {
+
+        UserModel failedUser = new UserModel();
+        failedUser.setUsername(username);
+        if (loginAttemptService.isBlocked(username)) {
+            model.addAttribute("user", failedUser);
+            model.addAttribute("error", "Kontot är tillfälligt låst. Vänligen försök igen senare.");
+            return "login";
+        }
+
         return userService.findByUsername(username)
                 .filter(hashed -> new BCryptPasswordEncoder().matches(password, hashed))
                 .map(found -> {
+                    loginAttemptService.loginSuccess(username);
                     model.addAttribute("username", username);
                     return "welcome";
                 })
                 .orElseGet(() -> {
-                    UserModel failedUser = new UserModel();
-                    failedUser.setUsername(username);
+                    loginAttemptService.loginFailed(username);
                     model.addAttribute("user", failedUser);
                     model.addAttribute("error", "Fel användarnamn eller lösenord.");
                     return "login";
