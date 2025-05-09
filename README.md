@@ -1,6 +1,6 @@
 # Secure Login -  IT Security assignment
 
-This project was a simple task focused on learning about how to store passwords securely for the *IT Security* course undertaken in April 2025.
+This project was a simple assignment focused on learning how to store user credentials securely for the *IT Security* course undertaken in April 2025.
 
 ## Project Features
 
